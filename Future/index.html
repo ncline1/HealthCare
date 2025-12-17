@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCE 360: Digital Health Care Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom scrollbar for module list */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        /* Chart container utilities */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #0ea5e9;
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+    </style>
+    <!-- Chosen Palette: "Clinical Clarity" - Slate (Neutral Backgrounds), Sky (Primary Actions), Teal (Success/Growth), Indigo (Deep Data) -->
+    <!-- Application Structure Plan: 
+         1. Header: Course Identity and Core Value Proposition.
+         2. Dashboard Section: High-level analytics of the course content (Skills Radar, Assessment Split) to give immediate context on "what will I learn?".
+         3. Interactive Curriculum Explorer: The core interaction. A split view with a filterable list of weeks on the left and a detailed dynamic content view on the right. This allows non-linear exploration of the syllabus.
+         4. Career Nexus: Connecting the abstract curriculum to concrete job roles found in the "Career Connections" section of the report.
+         5. Footer: Credentials and stacking info.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-sky-200">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                        <div class="h-8 w-8 bg-sky-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">H</div>
+                        <span class="font-bold text-xl tracking-tight text-slate-900">HCE 360 <span class="hidden sm:inline font-normal text-slate-500">| Digital Health Care</span></span>
+                    </div>
+                </div>
+                <div class="flex space-x-8 items-center">
+                    <button onclick="scrollToSection('dashboard')" class="text-slate-500 hover:text-sky-600 px-3 py-2 text-sm font-medium transition-colors">Overview</button>
+                    <button onclick="scrollToSection('curriculum')" class="text-slate-500 hover:text-sky-600 px-3 py-2 text-sm font-medium transition-colors">Curriculum</button>
+                    <button onclick="scrollToSection('careers')" class="text-slate-500 hover:text-sky-600 px-3 py-2 text-sm font-medium transition-colors">Careers</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-extrabold text-slate-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+                    The Future of Medicine is <span class="text-sky-600">Digital</span>
+                </h1>
+                <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-500">
+                    Explore the HCE 360 interactive syllabus. From AI diagnostics to telehealth ecosystems, discover how technology is reshaping patient care.
+                </p>
+                <div class="mt-8 flex justify-center gap-4">
+                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-sky-100 text-sky-800">
+                        3 Credits
+                    </span>
+                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-teal-100 text-teal-800">
+                        Lecture + Lab
+                    </span>
+                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                        Prereq: None
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Visualization & Content Choices:
+             - Radar Chart: Chosen to visualize the multi-disciplinary nature of the course (Ethics vs. Tech vs. Clinical).
+             - Doughnut Chart: Chosen to visualize the assessment breakdown, making the grading structure clear at a glance.
+             - Interactive List + Detail View: Chosen for the curriculum to prevent "wall of text" fatigue. Users can click weeks to reveal details, maintaining context without scrolling.
+             - Grid Cards: Used for Careers to make them feel like collectible achievements or destination cards.
+        -->
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="py-12 bg-slate-50 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-10 text-center sm:text-left">
+                    <h2 class="text-2xl font-bold text-slate-900">Course Analytics</h2>
+                    <p class="text-slate-500 mt-2">A data-driven look at the skills and assessments in HCE 360.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Skill Radar -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col items-center">
+                        <h3 class="text-lg font-medium text-slate-900 mb-4 w-full text-center">Competency Profile</h3>
+                        <div class="chart-container">
+                            <canvas id="skillsChart"></canvas>
+                        </div>
+                        <p class="text-sm text-slate-400 mt-4 text-center">
+                            Based on weekly topic distribution (e.g., Week 13 for Ethics, Week 11 for AI).
+                        </p>
+                    </div>
+
+                    <!-- Assessment Doughnut -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col items-center">
+                        <h3 class="text-lg font-medium text-slate-900 mb-4 w-full text-center">Assessment Structure</h3>
+                        <div class="chart-container">
+                            <canvas id="assessmentChart"></canvas>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-4 text-sm w-full">
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100 text-center">
+                                <span class="block font-bold text-sky-600">Weekly</span>
+                                <span class="text-slate-500">Quizzes & Labs</span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100 text-center">
+                                <span class="block font-bold text-indigo-600">Capstone</span>
+                                <span class="text-slate-500">Final Project</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Curriculum Explorer -->
+        <section id="curriculum" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-900">Interactive Curriculum</h2>
+                    <p class="text-slate-500 mt-2">Filter by theme and select a week to view detailed learning objectives and lab activities.</p>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-2 mb-8" id="filterContainer">
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-white shadow-md transition-all hover:scale-105" data-category="all">
+                        All Weeks
+                    </button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 transition-all" data-category="foundations">
+                        Foundations & Data
+                    </button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 transition-all" data-category="patient">
+                        Patient Technologies
+                    </button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 transition-all" data-category="advanced">
+                        Advanced & Future
+                    </button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 transition-all" data-category="ethics">
+                        Ethics & Application
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+                    <!-- List Column -->
+                    <div class="lg:col-span-1 overflow-y-auto custom-scroll pr-2 border-r border-slate-100" id="weekList">
+                        <!-- Weeks will be injected here via JS -->
+                    </div>
+
+                    <!-- Detail Column -->
+                    <div class="lg:col-span-2 bg-slate-50 rounded-xl p-8 border border-slate-200 relative overflow-hidden flex flex-col justify-center items-start" id="weekDetail">
+                        <div class="text-center w-full text-slate-400">
+                            <p class="text-xl">Select a week to explore the content.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Career & Outcomes -->
+        <section id="careers" class="py-16 bg-slate-900 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-white">Career Pathways</h2>
+                    <p class="text-sky-200 mt-4 max-w-2xl mx-auto">
+                        This course is a gateway to high-demand roles in the digital health ecosystem. 
+                        Hover over a card to see how course topics translate to job skills.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Career Card 1 -->
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-sky-500 transition-colors group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold">01</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Telehealth Coordinator</h3>
+                        <p class="text-slate-400 text-sm mb-4">Manages virtual care platforms and patient interactions.</p>
+                        <div class="border-t border-slate-700 pt-4 mt-auto">
+                            <span class="text-xs font-semibold text-sky-400 uppercase tracking-wider">Key Modules</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 3: Telehealth</span>
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 13: Ethics</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Career Card 2 -->
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-teal-500 transition-colors group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold">02</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Health Informatics Tech</h3>
+                        <p class="text-slate-400 text-sm mb-4">Analyzes EHR data to improve hospital workflows.</p>
+                        <div class="border-t border-slate-700 pt-4 mt-auto">
+                            <span class="text-xs font-semibold text-teal-400 uppercase tracking-wider">Key Modules</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 2: EHRs</span>
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 6: Informatics</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Career Card 3 -->
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-indigo-500 transition-colors group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold">03</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Digital Diagnostics Specialist</h3>
+                        <p class="text-slate-400 text-sm mb-4">Integrates AI tools into diagnostic imaging workflows.</p>
+                        <div class="border-t border-slate-700 pt-4 mt-auto">
+                            <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Key Modules</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 11: Imaging</span>
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 14: Future</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Career Card 4 -->
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-rose-500 transition-colors group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold">04</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Healthcare Systems Tech</h3>
+                        <p class="text-slate-400 text-sm mb-4">Secures and maintains hospital digital infrastructure.</p>
+                        <div class="border-t border-slate-700 pt-4 mt-auto">
+                            <span class="text-xs font-semibold text-rose-400 uppercase tracking-wider">Key Modules</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 12: Cyber</span>
+                                <span class="px-2 py-1 bg-slate-700 rounded text-xs">Wk 10: Emergency</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stackable Credentials -->
+                    <div class="md:col-span-2 lg:col-span-2 bg-gradient-to-r from-sky-900 to-slate-900 rounded-xl p-8 border border-slate-700 flex flex-col justify-center">
+                        <h3 class="text-2xl font-bold text-white mb-2">Stackable Credentials</h3>
+                        <p class="text-slate-300 mb-6">Earn micro-credentials alongside your degree to boost employability.</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div class="bg-slate-800/50 p-3 rounded text-center border border-slate-600">
+                                <div class="text-2xl mb-1">🏥</div>
+                                <div class="text-xs font-bold text-slate-300">Telehealth Tech</div>
+                            </div>
+                            <div class="bg-slate-800/50 p-3 rounded text-center border border-slate-600">
+                                <div class="text-2xl mb-1">💻</div>
+                                <div class="text-xs font-bold text-slate-300">Digital Fundamentals</div>
+                            </div>
+                            <div class="bg-slate-800/50 p-3 rounded text-center border border-slate-600">
+                                <div class="text-2xl mb-1">🔒</div>
+                                <div class="text-xs font-bold text-slate-300">Cyber Basic</div>
+                            </div>
+                            <div class="bg-slate-800/50 p-3 rounded text-center border border-slate-600">
+                                <div class="text-2xl mb-1">🤖</div>
+                                <div class="text-xs font-bold text-slate-300">AI Foundations</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-slate-50 border-t border-slate-200 py-8">
+            <div class="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
+                <p>Digital Health Care & Emerging Medical Technologies (HCE 360)</p>
+                <p class="mt-2">Generated from Course Outline Document</p>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // --- Data Store ---
+        const curriculumData = [
+            { week: 1, title: "Introduction to Digital Health", category: "foundations", 
+              topics: ["Evolution of healthcare tech", "Paper charts to AI", "Course tech overview"],
+              activity: "Activity: Digital health in everyday life" },
+            { week: 2, title: "Healthcare Data & EHRs", category: "foundations", 
+              topics: ["What is an EHR?", "Data collection", "Interoperability challenges"],
+              activity: "Lab: EHR navigation simulation" },
+            { week: 3, title: "Telehealth & Telemedicine", category: "patient", 
+              topics: ["Synchronous vs Asynchronous", "Remote consultations", "Virtual workflow"],
+              activity: "Lab: Mock telehealth visit roleplay" },
+            { week: 4, title: "Wearables & Remote Monitoring", category: "patient", 
+              topics: ["Smart watches & biosensors", "Continuous glucose monitors", "Patient engagement"],
+              activity: "Lab: Analyzing personal wearable data" },
+            { week: 5, title: "mHealth (Mobile Health)", category: "patient", 
+              topics: ["Health apps", "Patient portals", "Behavior modification via apps"],
+              activity: "Project: App usability critique" },
+            { week: 6, title: "Health Informatics & Big Data", category: "foundations", 
+              topics: ["Data analytics basics", "Population health", "Predictive modeling"],
+              activity: "Case Study: Predicting flu outbreaks" },
+            { week: 7, title: "VR & AR in Healthcare", category: "advanced", 
+              topics: ["Pain management VR", "Surgical training AR", "Therapeutic uses"],
+              activity: "Demo: VR anatomy tour (video based)" },
+            { week: 8, title: "Robotics & Automation", category: "advanced", 
+              topics: ["Surgical robots (Da Vinci)", "Pharmacy automation", "Service robots"],
+              activity: "Discussion: Will robots replace nurses?" },
+            { week: 9, title: "Medical Simulation", category: "advanced", 
+              topics: ["High-fidelity mannequins", "Virtual simulations", "Training safety"],
+              activity: "Lab: Virtual patient case scenario" },
+            { week: 10, title: "Emergency Digital Systems", category: "advanced", 
+              topics: ["Digital triage", "Mobile patient records", "Drone support"],
+              activity: "Case Study: Search & rescue medical tech" },
+            { week: 11, title: "Imaging & Diagnostics (AI)", category: "advanced", 
+              topics: ["Digital radiology", "Portable ultrasound", "AI-assisted diagnostics"],
+              activity: "Activity: Imaging interpretation practice" },
+            { week: 12, title: "Cybersecurity & Data Protection", category: "ethics", 
+              topics: ["Ransomware", "Data breaches", "HIPAA in digital age"],
+              activity: "Activity: Hospital cyber breach response plan" },
+            { week: 13, title: "Ethics, Law & Equity", category: "ethics", 
+              topics: ["Patient privacy", "Algorithm bias", "Rural vs urban gaps"],
+              activity: "Discussion: Who benefits from digital health?" },
+            { week: 14, title: "Future of Digital Healthcare", category: "advanced", 
+              topics: ["Smart hospitals", "Genomics", "Digital twins"],
+              activity: "Project Workday" },
+            { week: 15, title: "Student Project Presentations", category: "ethics", 
+              topics: ["Telehealth proposals", "Wearable innovations", "AI tool analysis"],
+              activity: "Final Presentation Capstone" }
+        ];
+
+        // --- State Management ---
+        let currentCategory = 'all';
+        let activeWeekId = null;
+
+        // --- DOM Elements ---
+        const weekListEl = document.getElementById('weekList');
+        const weekDetailEl = document.getElementById('weekDetail');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCharts();
+            renderWeekList();
+            
+            // Activate first week by default if list not empty
+            if (curriculumData.length > 0) {
+                showWeekDetail(curriculumData[0]);
+                activeWeekId = 1;
+                updateActiveState();
+            }
+        });
+
+        // --- Navigation ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- Filtering Logic ---
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update UI classes
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-slate-800', 'text-white', 'shadow-md');
+                    b.classList.add('bg-white', 'text-slate-600');
+                });
+                btn.classList.remove('bg-white', 'text-slate-600');
+                btn.classList.add('bg-slate-800', 'text-white', 'shadow-md');
+
+                // Filter Data
+                currentCategory = btn.dataset.category;
+                renderWeekList();
+            });
+        });
+
+        // --- Rendering Functions ---
+        function renderWeekList() {
+            weekListEl.innerHTML = '';
+            
+            const filtered = curriculumData.filter(week => 
+                currentCategory === 'all' || week.category === currentCategory
+            );
+
+            if (filtered.length === 0) {
+                weekListEl.innerHTML = `<div class="p-4 text-slate-400 italic">No modules found for this category.</div>`;
+                return;
+            }
+
+            filtered.forEach(week => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 mb-2 rounded-lg border transition-all duration-200 hover:shadow-sm ${
+                    week.week === activeWeekId 
+                    ? 'bg-sky-50 border-sky-300 ring-1 ring-sky-300' 
+                    : 'bg-white border-slate-200 hover:border-sky-200'
+                }`;
+                btn.onclick = () => {
+                    activeWeekId = week.week;
+                    showWeekDetail(week);
+                    renderWeekList(); // Re-render to update active styling
+                };
+
+                // content
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold uppercase tracking-wider ${getCategoryColor(week.category)}">
+                            Week ${week.week}
+                        </span>
+                        <span class="text-slate-300 text-xs">
+                            ${getCategoryLabel(week.category)}
+                        </span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 leading-tight">${week.title}</h4>
+                `;
+                weekListEl.appendChild(btn);
+            });
+        }
+
+        function showWeekDetail(week) {
+            weekDetailEl.innerHTML = `
+                <div class="fade-in w-full h-full flex flex-col">
+                    <div class="mb-6 pb-6 border-b border-slate-200">
+                        <div class="flex items-center gap-3 mb-2">
+                             <span class="px-3 py-1 rounded-full text-xs font-bold text-white bg-slate-800">Week ${week.week}</span>
+                             <span class="text-sm font-medium text-slate-500 uppercase tracking-wide">${getCategoryLabel(week.category)}</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-slate-900">${week.title}</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+                        <div>
+                            <h3 class="text-lg font-bold text-sky-700 mb-3 flex items-center">
+                                <span class="mr-2 text-xl">📚</span> Core Topics
+                            </h3>
+                            <ul class="space-y-3">
+                                ${week.topics.map(t => `
+                                    <li class="flex items-start">
+                                        <svg class="w-5 h-5 text-sky-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <span class="text-slate-700">${t}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-indigo-50 rounded-lg p-6 border border-indigo-100 flex flex-col justify-center">
+                            <h3 class="text-lg font-bold text-indigo-800 mb-2 flex items-center">
+                                <span class="mr-2 text-xl">⚡</span> Applied Activity
+                            </h3>
+                            <p class="text-indigo-900 font-medium text-lg leading-snug">
+                                ${week.activity.replace(':', ':<br/>')}
+                            </p>
+                            <div class="mt-4 text-xs text-indigo-400 uppercase tracking-widest font-bold">
+                                Hands-on Learning
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateActiveState() {
+             // Handled within renderWeekList logic now for simplicity
+        }
+
+        // --- Helpers ---
+        function getCategoryColor(cat) {
+            const map = {
+                foundations: 'text-slate-500',
+                patient: 'text-teal-600',
+                advanced: 'text-indigo-600',
+                ethics: 'text-rose-600'
+            };
+            return map[cat] || 'text-slate-500';
+        }
+
+        function getCategoryLabel(cat) {
+             const map = {
+                foundations: 'Foundations',
+                patient: 'Patient Tech',
+                advanced: 'Advanced Systems',
+                ethics: 'Ethics & Capstone'
+            };
+            return map[cat] || 'General';
+        }
+
+        // --- Charts ---
+        function renderCharts() {
+            // Radar Chart: Skills
+            const ctxSkills = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctxSkills, {
+                type: 'radar',
+                data: {
+                    labels: ['Clinical Tech', 'Data Analytics', 'Ethics & Law', 'Cybersecurity', 'Future Tech'],
+                    datasets: [{
+                        label: 'HCE 360 Focus Area',
+                        data: [90, 75, 60, 50, 80], // Estimated based on syllabus week count & lab intensity
+                        fill: true,
+                        backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                        borderColor: 'rgb(14, 165, 233)',
+                        pointBackgroundColor: 'rgb(14, 165, 233)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(14, 165, 233)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    elements: { line: { tension: 0.3 } },
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e2e8f0' },
+                            grid: { color: '#e2e8f0' },
+                            pointLabels: {
+                                font: { size: 12, weight: '600', family: 'sans-serif' },
+                                color: '#475569'
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false } // hide numbers for cleaner look
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Doughnut Chart: Assessments
+            const ctxAssessment = document.getElementById('assessmentChart').getContext('2d');
+            new Chart(ctxAssessment, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Weekly Quizzes', 'Labs/Simulations', 'Midterm', 'Case Studies', 'Final Project'],
+                    datasets: [{
+                        data: [20, 30, 15, 10, 25], // Hypothetical weighting based on standard course structures
+                        backgroundColor: [
+                            '#e2e8f0', // Slate 200
+                            '#0ea5e9', // Sky 500
+                            '#6366f1', // Indigo 500
+                            '#14b8a6', // Teal 500
+                            '#0f172a'  // Slate 900
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                usePointStyle: true, 
+                                padding: 20,
+                                font: { size: 11, family: 'sans-serif' }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
