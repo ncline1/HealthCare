@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 6: AI in Healthcare | Digital Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #334155; /* Slate 700 */
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .nav-link {
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            border-bottom-color: #0d9488; /* Teal 600 */
+            color: #0f172a; /* Slate 900 */
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+    </style>
+    <!-- Chosen Palette: Teal & Slate (Medical/Clean) -->
+    <!-- Application Structure Plan: 
+         A vertical scrolling single-page chapter with sticky navigation.
+         1. Hero Section: Overview and Learning Objectives.
+         2. Thematic Sections (Imaging, Documentation, Predictive): Each contains explanatory text paired with an interactive Chart.js visualization to demonstrate the concept (e.g., efficiency gains, accuracy comparisons).
+         3. Case Study: A narrative section with a specific visual breakdown.
+         4. Interactive Class Activity: A 'Simulation' module where the student inputs patient vitals and an 'AI Algorithm' provides a risk score, mimicking Clinical Decision Support Systems (CDSS).
+    -->
+    <!-- Visualization & Content Choices:
+         - Imaging: Grouped Bar Chart to compare Human vs. AI vs. Hybrid accuracy (Goal: Compare).
+         - Documentation: Donut Chart showing time allocation shifts (Goal: Change).
+         - Predictive: Line Chart showing sepsis risk trends over time (Goal: Inform/Warn).
+         - Activity: Interactive Inputs + DOM manipulation for CDSS Logic (Goal: Engage/Apply).
+         - Libraries: Chart.js for all graphs. No SVG/Mermaid.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-2xl font-bold text-teal-700">DH<span class="text-slate-700">101</span></span>
+                </div>
+                <div class="hidden sm:flex space-x-8">
+                    <a onclick="scrollToSection('intro')" class="nav-link text-sm font-medium text-slate-500 hover:text-slate-900">Overview</a>
+                    <a onclick="scrollToSection('imaging')" class="nav-link text-sm font-medium text-slate-500 hover:text-slate-900">Imaging</a>
+                    <a onclick="scrollToSection('docs')" class="nav-link text-sm font-medium text-slate-500 hover:text-slate-900">Automation</a>
+                    <a onclick="scrollToSection('predictive')" class="nav-link text-sm font-medium text-slate-500 hover:text-slate-900">Predictive</a>
+                    <a onclick="scrollToSection('activity')" class="nav-link text-sm font-medium text-teal-600 hover:text-teal-800">Class Activity</a>
+                </div>
+                <!-- Mobile menu button placeholder -->
+                <div class="sm:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-500 hover:text-slate-900 focus:outline-none">
+                        ☰
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden sm:hidden pb-4">
+                <div class="flex flex-col space-y-2">
+                    <a onclick="scrollToSection('intro')" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Overview</a>
+                    <a onclick="scrollToSection('imaging')" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Imaging</a>
+                    <a onclick="scrollToSection('activity')" class="block px-3 py-2 rounded-md text-base font-medium text-teal-600 hover:bg-teal-50">Class Activity</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Hero / Intro -->
+        <section id="intro" class="section-card border-t-4 border-teal-500">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                Week 6: Artificial Intelligence in Healthcare
+            </h1>
+            <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+                Welcome to Week 6. As we transition from digital records to intelligent systems, we explore how Artificial Intelligence (AI) is moving from theoretical research to bedside application. This week, we focus on three core pillars transforming care delivery:
+                <span class="font-semibold text-teal-700">Diagnostic Precision</span>, 
+                <span class="font-semibold text-teal-700">Operational Efficiency</span>, and 
+                <span class="font-semibold text-teal-700">Proactive Intervention</span>.
+            </p>
+            <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <h3 class="font-semibold text-slate-800 mb-2">Learning Objectives</h3>
+                <ul class="list-disc pl-5 space-y-1 text-slate-600">
+                    <li>Understand the role of Deep Learning in Diagnostic Imaging (CAD).</li>
+                    <li>Analyze how NLP automates Clinical Documentation.</li>
+                    <li>Evaluate the impact of Predictive Analytics on patient outcomes.</li>
+                    <li><strong>Activity:</strong> Simulate a Clinical Decision Support System (CDSS).</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Module 1: Diagnostic Imaging -->
+        <section id="imaging" class="section-card">
+            <div class="flex flex-col lg:flex-row gap-8 items-start">
+                <div class="lg:w-1/2">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-3">1. Diagnostic Imaging & Computer Vision</h2>
+                    <p class="text-slate-600 mb-4 leading-relaxed">
+                        Medical imaging (X-Ray, CT, MRI) generates massive datasets. AI, specifically <strong>Convolutional Neural Networks (CNNs)</strong>, excels at pattern recognition, identifying anomalies like tumors, fractures, or bleeds often faster than the human eye.
+                    </p>
+                    <p class="text-slate-600 mb-4 leading-relaxed">
+                        Crucially, AI is not replacing radiologists but augmenting them. The concept of <strong>"Augmented Intelligence"</strong> suggests that the combination of human judgment and AI sensitivity yields the highest accuracy.
+                    </p>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                        <p class="text-sm text-blue-800">
+                            <strong>Key Concept:</strong> Sensitivity vs. Specificity. AI often has higher sensitivity (finds everything) but may have lower specificity (false positives), requiring human verification.
+                        </p>
+                    </div>
+                </div>
+                <div class="lg:w-1/2 w-full">
+                    <div class="chart-container bg-white rounded-lg p-2 border border-slate-100 shadow-inner">
+                        <canvas id="imagingChart"></canvas>
+                    </div>
+                    <p class="text-center text-xs text-slate-400 mt-2">Figure 1.1: Breast Cancer Screening Accuracy comparison (Simulated Data)</p>
+                    <div class="mt-4 flex justify-center space-x-4">
+                        <button onclick="updateImagingChart('error')" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm font-medium transition">View Error Rates</button>
+                        <button onclick="updateImagingChart('accuracy')" class="px-3 py-1 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded text-sm font-medium transition">View Accuracy</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 2: Clinical Documentation -->
+        <section id="docs" class="section-card">
+            <h2 class="text-2xl font-bold text-slate-800 mb-3">2. Automating Clinical Documentation</h2>
+            <p class="text-slate-600 mb-6 leading-relaxed">
+                Physician burnout is a crisis, often driven by the "pajama time" spent on Electronic Health Records (EHR). <strong>Natural Language Processing (NLP)</strong> creates "Ambient Clinical Intelligence." These systems listen to the patient-doctor conversation, transcribe it, extract medical terms, and structure a SOAP note automatically.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="order-2 md:order-1">
+                    <div class="chart-container">
+                        <canvas id="docChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button id="toggleDocDataBtn" class="px-4 py-2 bg-teal-600 text-white rounded-md shadow hover:bg-teal-700 transition">
+                            Switch: Before AI vs. With AI Scribe
+                        </button>
+                    </div>
+                </div>
+                <div class="order-1 md:order-2 flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-2">The Efficiency Shift</h3>
+                    <p class="text-slate-600 mb-4">
+                        Explore the chart to see how an AI Scribe shifts the physician's day.
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-xs mr-3">1</span>
+                            <span class="text-slate-600 text-sm">Reduction in manual data entry allows for more face-to-face eye contact with patients.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-600 font-bold text-xs mr-3">2</span>
+                            <span class="text-slate-600 text-sm">Structured data capture improves billing accuracy and reduces claim denials.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 3: Predictive Analytics -->
+        <section id="predictive" class="section-card">
+            <h2 class="text-2xl font-bold text-slate-800 mb-3">3. Predictive Analytics & Early Intervention</h2>
+            <p class="text-slate-600 mb-4 leading-relaxed">
+                Descriptive analytics tells us what happened. <strong>Predictive analytics</strong> tells us what <em>will</em> happen. By analyzing vitals, labs, and history in real-time, AI can flag deteriorating patients hours before a human notices clinical signs of sepsis or cardiac arrest.
+            </p>
+
+            <div class="bg-slate-900 rounded-xl p-6 text-white shadow-lg overflow-hidden relative">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-mono text-teal-400">System Alert: Sepsis Watch</h3>
+                    <span class="animate-pulse flex h-3 w-3 rounded-full bg-red-500"></span>
+                </div>
+                
+                <div class="chart-container h-64">
+                    <canvas id="predictiveChart"></canvas>
+                </div>
+                
+                <div class="mt-4 grid grid-cols-3 gap-4 text-center border-t border-slate-700 pt-4">
+                    <div>
+                        <div class="text-xs text-slate-400">Current Risk Score</div>
+                        <div class="text-2xl font-bold text-red-400">82/100</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400">Trend</div>
+                        <div class="text-2xl font-bold text-yellow-400">↗ Rising</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400">Action</div>
+                        <div class="text-sm font-bold text-white bg-red-600 rounded px-2 py-1 mt-1">Lactate Ordered</div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-sm text-slate-500 mt-3 italic">
+                *The graph above demonstrates an AI model aggregating HR, BP, WBC, and Temp to calculate a composite risk score. Note the threshold crossing at 14:00.
+            </p>
+        </section>
+
+        <!-- Case Study -->
+        <section class="section-card bg-gradient-to-br from-teal-50 to-white border border-teal-100">
+            <div class="flex items-center mb-4">
+                <span class="bg-teal-600 text-white text-xs font-bold px-2 py-1 rounded uppercase tracking-wide mr-3">Case Study</span>
+                <h2 class="text-xl font-bold text-slate-800">Early Disease Detection: Diabetic Retinopathy</h2>
+            </div>
+            <div class="prose max-w-none text-slate-600">
+                <p>
+                    <strong>The Challenge:</strong> Diabetic Retinopathy (DR) is a leading cause of blindness. It requires specialized eye exams that are scarce in rural areas.
+                </p>
+                <p>
+                    <strong>The AI Solution:</strong> Google Health developed a deep learning algorithm trained on 128,000 retinal images. The AI grades images on a 5-point scale for severity.
+                </p>
+                <p>
+                    <strong>The Outcome:</strong> Deployment in India and Thailand allowed technicians to scan eyes, with the AI providing instant diagnostic grading. Patients with "referable" DR were flagged immediately, increasing screening rates by 40% and treating patients before vision loss occurred.
+                </p>
+            </div>
+        </section>
+
+        <!-- Class Activity -->
+        <section id="activity" class="section-card ring-2 ring-teal-500 ring-offset-2">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-900">Class Activity: The Virtual CDSS</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">
+                    Act as the clinician. Input the patient vitals below. The "AI" (a simple rules-based algorithm) will generate a risk score and a recommendation. See if you agree with the machine.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Inputs -->
+                <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                    <h3 class="font-semibold text-slate-800 mb-4 border-b pb-2">Patient Vitals Input</h3>
+                    
+                    <div class="mb-6">
+                        <label class="flex justify-between text-sm font-medium text-slate-700 mb-1">
+                            Heart Rate (BPM)
+                            <span id="val-hr" class="text-teal-600 font-bold">80</span>
+                        </label>
+                        <input type="range" id="input-hr" min="40" max="180" value="80" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="flex justify-between text-sm font-medium text-slate-700 mb-1">
+                            Temperature (°C)
+                            <span id="val-temp" class="text-teal-600 font-bold">37.0</span>
+                        </label>
+                        <input type="range" id="input-temp" min="35.0" max="42.0" step="0.1" value="37.0" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="flex justify-between text-sm font-medium text-slate-700 mb-1">
+                            Oxygen Saturation (%)
+                            <span id="val-o2" class="text-teal-600 font-bold">98</span>
+                        </label>
+                        <input type="range" id="input-o2" min="70" max="100" value="98" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                    </div>
+
+                    <div class="mb-2">
+                         <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="input-confusion" class="form-checkbox h-5 w-5 text-teal-600 rounded focus:ring-teal-500 border-gray-300">
+                            <span class="text-sm font-medium text-slate-700">Patient exhibits confusion/altered mental state?</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- AI Output -->
+                <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-lg flex flex-col justify-center items-center text-center relative overflow-hidden">
+                    <div id="ai-status-bg" class="absolute inset-0 bg-green-50 opacity-50 z-0 transition-colors duration-500"></div>
+                    
+                    <div class="z-10 relative w-full">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">CDSS Analysis Result</h4>
+                        
+                        <div class="mb-6">
+                            <div class="text-5xl font-extrabold text-slate-800 mb-1" id="score-display">Low</div>
+                            <div class="text-sm text-slate-500">Calculated Risk Level</div>
+                        </div>
+
+                        <div id="recommendation-box" class="bg-white/80 backdrop-blur border border-green-200 p-4 rounded-lg">
+                            <h5 class="font-bold text-green-700 mb-1">Recommendation</h5>
+                            <p class="text-slate-700 text-sm" id="rec-text">Standard Monitoring. Vitals are within normal limits.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="mb-2 font-medium">Digital Healthcare Course - Week 6</p>
+            <p class="text-sm text-slate-500">Generated for Educational Purposes Only. Not for clinical use.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- State Management ---
+        const state = {
+            docDataMode: 'before', // 'before' or 'after'
+            imagingMode: 'accuracy' // 'accuracy' or 'error'
+        };
+
+        // --- Chart.js Configuration & Data ---
+        
+        // 1. Diagnostic Imaging Chart
+        const imagingCtx = document.getElementById('imagingChart').getContext('2d');
+        const imagingData = {
+            labels: ['Human Radiologist', 'AI Model (Standalone)', 'Human + AI (Hybrid)'],
+            datasets: [{
+                label: 'Accuracy (%)',
+                data: [96.5, 97.1, 99.5],
+                backgroundColor: [
+                    'rgba(148, 163, 184, 0.7)', // Slate 400
+                    'rgba(45, 212, 191, 0.7)',  // Teal 400
+                    'rgba(15, 118, 110, 0.9)'   // Teal 700
+                ],
+                borderColor: [
+                    'rgba(148, 163, 184, 1)',
+                    'rgba(45, 212, 191, 1)',
+                    'rgba(15, 118, 110, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const imagingChart = new Chart(imagingCtx, {
+            type: 'bar',
+            data: imagingData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 90,
+                        max: 100,
+                        title: { display: true, text: 'Percentage' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Diagnostic Accuracy Rates' }
+                }
+            }
+        });
+
+        function updateImagingChart(mode) {
+            state.imagingMode = mode;
+            if (mode === 'error') {
+                imagingChart.data.datasets[0].label = 'Error Rate (%)';
+                imagingChart.data.datasets[0].data = [3.5, 2.9, 0.5];
+                imagingChart.data.datasets[0].backgroundColor = [
+                    'rgba(239, 68, 68, 0.7)', // Red
+                    'rgba(249, 115, 22, 0.7)', // Orange
+                    'rgba(34, 197, 94, 0.7)'   // Green
+                ];
+                imagingChart.options.scales.y.min = 0;
+                imagingChart.options.scales.y.max = 5;
+                imagingChart.options.plugins.title.text = 'Diagnostic Error Rates (Lower is Better)';
+            } else {
+                imagingChart.data.datasets[0].label = 'Accuracy (%)';
+                imagingChart.data.datasets[0].data = [96.5, 97.1, 99.5];
+                imagingChart.data.datasets[0].backgroundColor = [
+                    'rgba(148, 163, 184, 0.7)',
+                    'rgba(45, 212, 191, 0.7)',
+                    'rgba(15, 118, 110, 0.9)'
+                ];
+                imagingChart.options.scales.y.min = 90;
+                imagingChart.options.scales.y.max = 100;
+                imagingChart.options.plugins.title.text = 'Diagnostic Accuracy Rates (Higher is Better)';
+            }
+            imagingChart.update();
+        }
+
+        // 2. Clinical Documentation Chart (Donut)
+        const docCtx = document.getElementById('docChart').getContext('2d');
+        const docData = {
+            labels: ['Direct Patient Care', 'EHR/Documentation', 'Admin Tasks'],
+            datasets: [{
+                data: [35, 45, 20], // Before AI
+                backgroundColor: [
+                    'rgba(13, 148, 136, 0.8)', // Teal 600
+                    'rgba(100, 116, 139, 0.8)', // Slate 500
+                    'rgba(203, 213, 225, 0.8)'  // Slate 300
+                ],
+                borderWidth: 0
+            }]
+        };
+
+        const docChart = new Chart(docCtx, {
+            type: 'doughnut',
+            data: docData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Physician Time Allocation (Traditional)' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        document.getElementById('toggleDocDataBtn').addEventListener('click', () => {
+            if (state.docDataMode === 'before') {
+                // Switch to After
+                docChart.data.datasets[0].data = [65, 15, 20]; // More patient care, less EHR
+                docChart.options.plugins.title.text = 'Physician Time Allocation (With AI Scribe)';
+                state.docDataMode = 'after';
+                document.getElementById('toggleDocDataBtn').innerText = "Reset to Before AI";
+                document.getElementById('toggleDocDataBtn').classList.replace('bg-teal-600', 'bg-slate-600');
+            } else {
+                // Switch to Before
+                docChart.data.datasets[0].data = [35, 45, 20];
+                docChart.options.plugins.title.text = 'Physician Time Allocation (Traditional)';
+                state.docDataMode = 'before';
+                document.getElementById('toggleDocDataBtn').innerText = "Switch: With AI Scribe";
+                document.getElementById('toggleDocDataBtn').classList.replace('bg-slate-600', 'bg-teal-600');
+            }
+            docChart.update();
+        });
+
+        // 3. Predictive Analytics Chart (Line)
+        const predCtx = document.getElementById('predictiveChart').getContext('2d');
+        
+        // Generate mock time labels (08:00 to 18:00)
+        const timeLabels = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+        
+        const predChart = new Chart(predCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [
+                    {
+                        label: 'Sepsis Risk Score',
+                        data: [12, 15, 18, 22, 25, 40, 65, 78, 82, 85, 88], // Rising risk
+                        borderColor: 'rgba(248, 113, 113, 1)', // Red 400
+                        backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Alert Threshold',
+                        data: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, labels: { color: '#fff' } }
+                }
+            }
+        });
+
+        // --- Class Activity: Virtual CDSS Logic ---
+        const hrInput = document.getElementById('input-hr');
+        const tempInput = document.getElementById('input-temp');
+        const o2Input = document.getElementById('input-o2');
+        const confInput = document.getElementById('input-confusion');
+
+        const valHr = document.getElementById('val-hr');
+        const valTemp = document.getElementById('val-temp');
+        const valO2 = document.getElementById('val-o2');
+
+        const scoreDisplay = document.getElementById('score-display');
+        const recText = document.getElementById('rec-text');
+        const recBox = document.getElementById('recommendation-box');
+        const recBg = document.getElementById('ai-status-bg');
+
+        function updateCDSS() {
+            // Get values
+            const hr = parseInt(hrInput.value);
+            const temp = parseFloat(tempInput.value);
+            const o2 = parseInt(o2Input.value);
+            const confusion = confInput.checked;
+
+            // Update UI Labels
+            valHr.innerText = hr;
+            valTemp.innerText = temp.toFixed(1);
+            valO2.innerText = o2;
+
+            // Simple "Sepsis-like" Logic (qSOFA inspired simplified)
+            let riskPoints = 0;
+
+            if (hr > 100) riskPoints += 1;
+            if (o2 < 95) riskPoints += 1; // using o2 instead of resp rate for simplicity
+            if (confusion) riskPoints += 1;
+            if (temp > 38.5 || temp < 36.0) riskPoints += 1; // SIRS criteria hint
+
+            // Risk calculation
+            // Max points = 4
+            let riskLevel = "Low";
+            let recommendation = "Standard Monitoring. Vitals are within normal limits.";
+            let colorClass = "green";
+            let textClass = "text-green-700";
+            let borderClass = "border-green-200";
+
+            if (riskPoints >= 3) {
+                riskLevel = "CRITICAL";
+                recommendation = "IMMEDIATE ACTION: Activate Rapid Response Team. Possible Sepsis.";
+                colorClass = "red";
+                textClass = "text-red-700";
+                borderClass = "border-red-200";
+            } else if (riskPoints >= 1) {
+                riskLevel = "Moderate";
+                recommendation = "Warning: Assess patient for infection source. Increase monitoring frequency.";
+                colorClass = "yellow";
+                textClass = "text-yellow-700";
+                borderClass = "border-yellow-200";
+            }
+
+            // Update DOM
+            scoreDisplay.innerText = riskLevel;
+            scoreDisplay.className = `text-5xl font-extrabold mb-1 text-${colorClass === 'yellow' ? 'yellow-600' : colorClass + '-600'}`;
+            
+            recText.innerText = recommendation;
+            recBox.className = `bg-white/80 backdrop-blur border ${borderClass} p-4 rounded-lg`;
+            recBox.querySelector('h5').className = `font-bold mb-1 ${textClass}`;
+            
+            recBg.className = `absolute inset-0 bg-${colorClass}-100 opacity-50 z-0 transition-colors duration-500`;
+        }
+
+        // Add Listeners
+        [hrInput, tempInput, o2Input, confInput].forEach(el => {
+            el.addEventListener('input', updateCDSS);
+        });
+
+        // Initialize CDSS
+        updateCDSS();
+
+        // Navigation Scroll Logic
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                const offset = 80; // height of nav
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = el.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+            // Close mobile menu if open
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+    </script>
+</body>
+</html>
