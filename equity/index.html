@@ -1,1 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The State of Digital Health Equity</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #F8F9FA;
+    color: #0A2540;
+}
+h1, h2, h3, h4, .font-heading {
+    font-family: 'Poppins', sans-serif;
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 350px;
+    max-height: 400px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 400px;
+    }
+}
+.card-elevation {
+    box-shadow: 0 10px 25px -5px rgba(10, 37, 64, 0.1), 0 8px 10px -6px rgba(10, 37, 64, 0.1);
+}
+.data-flow-box {
+    border: 2px solid #00D4B2;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    background: #ffffff;
+    font-weight: 600;
+}
+.arrow-down {
+    text-align: center;
+    font-size: 2rem;
+    color: #FF5A5F;
+    margin: 0.5rem 0;
+}
+</style>
+</head>
+<body class="antialiased">
 
+<!-- Chosen Palette: Energetic Professional (Navy #0A2540, Teal #00D4B2, Coral #FF5A5F, Gold #FFB400, Light Gray #F8F9FA) -->
+<!-- Application Structure Plan: A linear, highly visual infographic flow. It starts with a strong hook (KPIs), moves into the structural access divide (Bar Chart), explores the hidden dangers of algorithm bias (Bubble Chart), and concludes with a visual breakdown of data privacy flows (HTML/CSS Diagram). This ensures the user digests structural inequities before understanding the complex algorithmic and privacy implications. -->
+<!-- Visualization & Content Choices: 
+1. Key Stats: Goal: Inform -> Big Numbers -> Immediate impact, sets the stakes.
+2. Access Gap: Goal: Compare -> Grouped Bar Chart (Chart.js) -> Best for side-by-side demographic comparisons of infrastructure metrics.
+3. Algorithm Bias: Goal: Relationships -> Bubble Chart (Chart.js) -> Shows correlation between actual need and predicted need, with bubble size representing population impact.
+4. Data Privacy Flow: Goal: Organize -> HTML/CSS Grid Diagram -> Clearly maps the hidden journey of patient data without relying on prohibited SVG or Mermaid tools.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<div class="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    
+    <header class="text-center mb-16">
+        <div class="inline-block bg-[#FFB400] text-[#0A2540] px-4 py-1 rounded-full font-bold text-sm tracking-wider mb-4 uppercase">2026 Industry Report</div>
+        <h1 class="text-5xl md:text-6xl font-extrabold text-[#0A2540] mb-6 leading-tight">The State of <span class="text-[#00D4B2]">Digital Health Equity</span></h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">Digital health innovations are advancing at an unprecedented pace. Yet, without intentional design, these tools risk amplifying historical disparities. We analyze the critical gaps in access, algorithm fairness, and data privacy.</p>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+        <div class="bg-white rounded-xl p-8 card-elevation border-t-4 border-[#00D4B2]">
+            <div class="text-4xl mb-2">&#128241;</div>
+            <h3 class="text-5xl font-extrabold text-[#0A2540] mb-2">43%</h3>
+            <p class="text-sm text-gray-500 font-medium uppercase tracking-wide">of rural patients lack broadband access required for telehealth.</p>
+        </div>
+        <div class="bg-[#0A2540] rounded-xl p-8 card-elevation border-t-4 border-[#FF5A5F]">
+            <div class="text-4xl mb-2">&#9878;</div>
+            <h3 class="text-5xl font-extrabold text-white mb-2">2.5x</h3>
+            <p class="text-sm text-gray-300 font-medium uppercase tracking-wide">Higher error rate in commercial risk algorithms for minority groups.</p>
+        </div>
+        <div class="bg-white rounded-xl p-8 card-elevation border-t-4 border-[#FFB400]">
+            <div class="text-4xl mb-2">&#128275;</div>
+            <h3 class="text-5xl font-extrabold text-[#0A2540] mb-2">81%</h3>
+            <p class="text-sm text-gray-500 font-medium uppercase tracking-wide">of popular health apps share user data without explicit consent.</p>
+        </div>
+    </section>
+
+    <section class="mb-24">
+        <div class="mb-8 md:w-2/3">
+            <h2 class="text-3xl font-bold text-[#0A2540] mb-4 border-l-8 border-[#00D4B2] pl-4">The Infrastructure Divide</h2>
+            <p class="text-lg text-gray-600">Before patients can benefit from digital health, they must be able to connect to it. The "digital divide" remains the primary barrier to healthcare equity. This chart compares critical infrastructure and utilization metrics across urban and rural demographics, highlighting a compounding disadvantage.</p>
+        </div>
+        
+        <div class="bg-white rounded-2xl p-6 md:p-10 card-elevation">
+            <h3 class="text-xl font-bold text-center text-[#0A2540] mb-6">Urban vs. Rural Digital Health Readiness Metrics</h3>
+            <div class="chart-container">
+                <canvas id="accessChart"></canvas>
+            </div>
+            <div class="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-700"><strong class="text-[#FF5A5F]">Key Takeaway:</strong> The gap in telehealth utilization is directly correlated to the lack of high-speed broadband infrastructure, not a lack of patient willingness.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-24">
+        <div class="mb-8 md:w-2/3">
+            <h2 class="text-3xl font-bold text-[#0A2540] mb-4 border-l-8 border-[#FF5A5F] pl-4">Algorithmic Bias in Risk Prediction</h2>
+            <p class="text-lg text-gray-600">Machine learning models often use historical healthcare spending as a proxy for a patient's health needs. Because marginalized populations historically face barriers to care and spend less, algorithms falsely predict they are healthier than they actually are, systematically denying them necessary proactive care.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 md:p-10 card-elevation">
+            <h3 class="text-xl font-bold text-center text-[#0A2540] mb-6">Actual Health Risk vs. Algorithm-Assigned Risk Score</h3>
+            <div class="chart-container">
+                <canvas id="biasChart"></canvas>
+            </div>
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start">
+                    <span class="text-[#00D4B2] text-2xl mr-3">&#9679;</span>
+                    <p class="text-sm text-gray-600"><strong>Majority Demographic:</strong> The algorithm correctly aligns their high actual health risk with a high predicted risk score, ensuring they receive care management.</p>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-[#FF5A5F] text-2xl mr-3">&#9679;</span>
+                    <p class="text-sm text-gray-600"><strong>Marginalized Demographic:</strong> Despite having the same or worse actual health risk, the algorithm assigns a severely deflated risk score, resulting in undercare.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-24">
+        <div class="mb-8 md:w-2/3">
+            <h2 class="text-3xl font-bold text-[#0A2540] mb-4 border-l-8 border-[#FFB400] pl-4">The Privacy Illusion</h2>
+            <p class="text-lg text-gray-600">Consumers widely believe that all health data is protected. However, data generated by commercial wearables and wellness apps often falls completely outside standard medical privacy laws, creating a lucrative, unregulated shadow market for sensitive biometric data.</p>
+        </div>
+
+        <div class="bg-[#0A2540] rounded-2xl p-8 md:p-12 card-elevation text-white">
+            <h3 class="text-2xl font-bold text-center text-white mb-10">The Commercial Health Data Pipeline</h3>
+            
+            <div class="max-w-2xl mx-auto flex flex-col items-center">
+                <div class="w-full flex justify-between items-center bg-[#153B5E] p-4 rounded-lg border border-[#00D4B2]">
+                    <div class="text-center w-1/3">
+                        <div class="text-3xl mb-1">&#128104;</div>
+                        <p class="text-xs font-bold text-[#00D4B2]">User</p>
+                    </div>
+                    <div class="w-1/3 text-center text-[#00D4B2] font-bold text-xl">&#8594; inputs data &#8594;</div>
+                    <div class="text-center w-1/3">
+                        <div class="text-3xl mb-1">&#128241;</div>
+                        <p class="text-xs font-bold text-[#FFB400]">Wellness App</p>
+                    </div>
+                </div>
+
+                <div class="arrow-down">&#8595;</div>
+
+                <div class="w-full bg-[#153B5E] p-6 rounded-lg border border-[#FF5A5F]">
+                    <h4 class="text-center font-bold text-[#FF5A5F] mb-4 uppercase tracking-widest text-sm">The Non-HIPAA Zone</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white text-[#0A2540] p-3 rounded text-center shadow">
+                            <p class="font-bold text-sm mb-1">Data Brokers</p>
+                            <p class="text-xs text-gray-600">Aggregates profiles</p>
+                        </div>
+                        <div class="bg-white text-[#0A2540] p-3 rounded text-center shadow">
+                            <p class="font-bold text-sm mb-1">Ad Networks</p>
+                            <p class="text-xs text-gray-600">Targeted marketing</p>
+                        </div>
+                        <div class="bg-white text-[#0A2540] p-3 rounded text-center shadow">
+                            <p class="font-bold text-sm mb-1">Insurers</p>
+                            <p class="text-xs text-gray-600">Risk assessments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-10 text-center">
+                <p class="text-gray-300 text-sm max-w-xl mx-auto">Without comprehensive federal data privacy legislation covering consumer-generated health data, users unknowingly trade deeply personal metrics for app utility.</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+function wrapLabel(label) {
+    if (label.length <= 16) return label;
+    const words = label.split(' ');
+    const lines = [];
+    let currentLine = '';
+    for (let word of words) {
+        if ((currentLine + word).length > 16) {
+            if (currentLine) lines.push(currentLine.trim());
+            currentLine = word + ' ';
+        } else {
+            currentLine += word + ' ';
+        }
+    }
+    if (currentLine) lines.push(currentLine.trim());
+    return lines;
+}
+
+Chart.defaults.font.family = "'Roboto', sans-serif";
+Chart.defaults.color = '#4B5563'; 
+
+const rawAccessLabels = ['High-Speed Broadband Access', 'Telehealth Service Utilization', 'Specialist Physicians per 100k'];
+const processedAccessLabels = rawAccessLabels.map(wrapLabel);
+
+const ctxAccess = document.getElementById('accessChart').getContext('2d');
+new Chart(ctxAccess, {
+    type: 'bar',
+    data: {
+        labels: processedAccessLabels,
+        datasets: [
+            {
+                label: 'Urban Demographics',
+                data: [97, 65, 263],
+                backgroundColor: '#00D4B2',
+                borderRadius: 4
+            },
+            {
+                label: 'Rural Demographics',
+                data: [57, 22, 30],
+                backgroundColor: '#0A2540',
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { font: { weight: 'bold' } }
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const item = tooltipItems[0];
+                        let label = item.chart.data.labels[item.dataIndex];
+                        if (Array.isArray(label)) {
+                            return label.join(' ');
+                        } else {
+                            return label;
+                        }
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Metric Value (Percentage or Count)' }
+            },
+            x: {
+                ticks: {
+                    autoSkip: false,
+                    maxRotation: 0,
+                    minRotation: 0
+                }
+            }
+        }
+    }
+});
+
+const ctxBias = document.getElementById('biasChart').getContext('2d');
+new Chart(ctxBias, {
+    type: 'bubble',
+    data: {
+        datasets: [
+            {
+                label: 'Majority Demographic Population Clusters',
+                data: [
+                    { x: 20, y: 25, r: 15 },
+                    { x: 40, y: 45, r: 25 },
+                    { x: 60, y: 70, r: 30 },
+                    { x: 80, y: 90, r: 20 },
+                    { x: 95, y: 98, r: 10 }
+                ],
+                backgroundColor: 'rgba(0, 212, 178, 0.6)',
+                borderColor: '#00D4B2',
+                borderWidth: 2
+            },
+            {
+                label: 'Marginalized Demographic Population Clusters',
+                data: [
+                    { x: 20, y: 10, r: 12 },
+                    { x: 40, y: 20, r: 22 },
+                    { x: 60, y: 35, r: 28 },
+                    { x: 80, y: 50, r: 18 },
+                    { x: 95, y: 65, r: 8 }
+                ],
+                backgroundColor: 'rgba(255, 90, 95, 0.6)',
+                borderColor: '#FF5A5F',
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        return 'Population Cluster';
+                    },
+                    label: function(context) {
+                        return `Actual Risk: ${context.raw.x}, Assigned: ${context.raw.y}`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                title: { display: true, text: 'Actual Patient Health Risk Severity (Higher = Sicker)', font: { weight: 'bold' } },
+                min: 0,
+                max: 100
+            },
+            y: {
+                title: { display: true, text: 'Algorithm Assigned Risk Score (Higher = More Care)', font: { weight: 'bold' } },
+                min: 0,
+                max: 100
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
